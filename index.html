@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Juego de Parejas Bíblicas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-primary: #4CAF50;
+      --color-secondary: #FFC107;
+      --color-accent: #FF5722;
+      --color-background: #E8F5E9;
+      --color-text: #1B5E20;
+      --color-card: #FFFFFF;
+      --color-progress: #4CAF50;
+      --color-btn-next: #2196F3;
+      --shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--color-background) 0%, #c8e6c9 100%);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 16px 8px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin: 20px 0;
+    }
+
+    h1 {
+      color: var(--color-primary);
+      margin: 0 0 10px 0;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+      animation: bounce 2s infinite;
+    }
+
+    .nivel-info {
+      font-weight: bold;
+      font-size: clamp(16px, 3vw, 20px);
+      margin: 10px 0;
+      color: var(--color-accent);
+      background: rgba(255,255,255,0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    #progreso-container {
+      width: 90%;
+      max-width: 500px;
+      height: 20px;
+      background-color: #e0e0e0;
+      border-radius: 10px;
+      margin: 15px auto;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    #progreso {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-primary), #8BC34A);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      max-width: 500px;
+      margin: 15px auto;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px 15px;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      min-width: 120px;
+      flex: 1;
+    }
+
+    #movimientos, #puntuacion {
+      font-weight: bold;
+      font-size: clamp(16px, 3vw, 20px);
+      color: var(--color-text);
+    }
+
+    #tablero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+      margin: 20px auto;
+      width: 100%;
+      max-width: 600px;
+      padding: 0 10px;
+    }
+
+    @media (min-width: 600px) {
+      #tablero {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+      }
+    }
+
+    .tarjeta {
+      perspective: 1000px;
+      aspect-ratio: 1/1;
+      width: 100%;
+      max-width: 120px;
+      cursor: pointer;
+      margin: 0 auto;
+    }
+
+    .tarjeta-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+    }
+
+    .tarjeta.revelada .tarjeta-inner,
+    .tarjeta.completada .tarjeta-inner {
+      transform: rotateY(180deg);
+      cursor: default;
+    }
+
+    .tarjeta-front, .tarjeta-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      padding: 8px;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .tarjeta-front {
+      background: linear-gradient(135deg, var(--color-primary), #81C784);
+      color: white;
+      font-size: clamp(24px, 6vw, 36px);
+    }
+
+    .tarjeta-front i {
+      font-size: clamp(20px, 5vw, 30px);
+      margin-bottom: 5px;
+    }
+
+    .tarjeta-back {
+      background: linear-gradient(135deg, var(--color-secondary), #FFD54F);
+      color: var(--color-text);
+      transform: rotateY(180deg);
+      font-size: clamp(10px, 2.5vw, 16px);
+      overflow: hidden;
+    }
+
+    .tarjeta-back.nombre {
+      background: linear-gradient(135deg, #42A5F5, #64B5F6);
+      color: white;
+    }
+
+    .tarjeta-back.vivencia {
+      background: linear-gradient(135deg, var(--color-secondary), #FFD54F);
+      color: var(--color-text);
+    }
+
+    #mensaje {
+      font-size: clamp(16px, 3vw, 20px);
+      color: var(--color-text);
+      font-weight: 700;
+      min-height: 70px;
+      max-width: 90%;
+      margin: 20px auto;
+      padding: 15px;
+      background: rgba(255, 243, 205, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 3px 9px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .botones {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: clamp(14px, 3vw, 16px);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+      justify-content: center;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+
+    #reiniciar {
+      background-color: var(--color-primary);
+    }
+
+    #reiniciar:hover {
+      background-color: #2E7D32;
+    }
+
+    #siguiente {
+      background-color: var(--color-btn-next);
+    }
+
+    #siguiente:hover {
+      background-color: #0D47A1;
+    }
+
+    #sonido-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .celebracion {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: var(--color-accent);
+      opacity: 0;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes tada {
+      0% { transform: scale(1); }
+      10%, 20% { transform: scale(0.9) rotate(-3deg); }
+      30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+      40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    @keyframes fall {
+      0% { 
+        transform: translateY(-100px) rotate(0deg); 
+        opacity: 1;
+      }
+      100% { 
+        transform: translateY(100vh) rotate(360deg); 
+        opacity: 0;
+      }
+    }
+
+    .animate-pulse {
+      animation: pulse 0.5s;
+    }
+
+    .animate-tada {
+      animation: tada 1s;
+    }
+
+    .nivel-completado {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .nivel-completado h2 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin-bottom: 20px;
+      color: var(--color-secondary);
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .nivel-completado p {
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      margin-bottom: 20px;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    /* Mejoras para móviles */
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+        border-radius: 15px;
+      }
+      
+      .stat-box {
+        min-width: 100px;
+        padding: 8px 12px;
+      }
+      
+      button {
+        padding: 10px 16px;
+        min-width: 120px;
+      }
+      
+      #tablero {
+        gap: 8px;
+      }
+    }
+
+    /* Mejoras para tablets */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .container {
+        max-width: 90%;
+      }
+      
+      #tablero {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sonido-btn">
+    <i class="fas fa-volume-up"></i>
+  </div>
+
+  <div class="container">
+    <h1><i class="fas fa-bible"></i> Juego de Parejas Bíblicas</h1>
+    
+    <div class="nivel-info">Nivel <span id="nivel-num">1</span> de 8</div>
+    
+    <div id="progreso-container">
+      <div id="progreso"></div>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-box">
+        <div>Movimientos</div>
+        <div id="movimientos">0</div>
+      </div>
+      <div class="stat-box">
+        <div>Puntuación</div>
+        <div id="puntuacion">0</div>
+      </div>
+    </div>
+    
+    <div id="tablero"></div>
+    
+    <div id="mensaje">¡Encuentra las parejas bíblicas! Toca las tarjetas para revelarlas.</div>
+    
+    <div class="botones">
+      <button id="reiniciar"><i class="fas fa-redo"></i> Reiniciar</button>
+      <button id="siguiente" class="oculto"><i class="fas fa-arrow-right"></i> Siguiente Nivel</button>
+    </div>
+  </div>
+
+  <div id="celebracion" class="celebracion"></div>
+  
+  <div id="nivel-completado" class="nivel-completado oculto">
+    <h2>¡Nivel Completado!</h2>
+    <p>Has completado el nivel con <span id="final-movimientos">0</span> movimientos</p>
+    <p>Puntuación: <span id="final-puntuacion">0</span></p>
+    <button id="jugar-otra-vez"><i class="fas fa-play"></i> Jugar Siguiente Nivel</button>
+  </div>
+
+<script>
+  const niveles = [
+    [
+      { nombre: "David", vivencia: "Venció a Goliat" },
+      { nombre: "Moisés", vivencia: "Abrió el Mar Rojo" },
+      { nombre: "Noé", vivencia: "Construyó el arca" },
+      { nombre: "Daniel", vivencia: "En el foso de leones" }
+    ],
+    [
+      { nombre: "Esther", vivencia: "Salvó a su pueblo" },
+      { nombre: "José", vivencia: "Coatro de muchos colores" },
+      { nombre: "Elías", vivencia: "Subió en un torbellino" },
+      { nombre: "Jesús", vivencia: "Resucitó al tercer día" },
+      { nombre: "Jonás", vivencia: "Tres días en un gran pez" },
+      { nombre: "Ana", vivencia: "Oró por un hijo" }
+    ],
+    [
+      { nombre: "Abraham", vivencia: "Padre de multitudes" },
+      { nombre: "Pablo", vivencia: "Conversión camino a Damasco" },
+      { nombre: "Rut", vivencia: "Fiel a su suegra Noemí" },
+      { nombre: "Salomón", vivencia: "Pidió sabiduría a Dios" },
+      { nombre: "Pedro", vivencia: "Caminó sobre el agua" },
+      { nombre: "Eliseo", vivencia: "Heredó el manto de Elías" },
+      { nombre: "Gedeón", vivencia: "Derrotó a los madianitas" },
+      { nombre: "Bartimeo", vivencia: "Recobró la vista" }
+    ],
+    [
+      { nombre: "Sansón", vivencia: "Tenía una fuerza sobrenatural" },
+      { nombre: "Lázaro", vivencia: "Fue resucitado por Jesús" },
+      { nombre: "María", vivencia: "Madre de Jesús" },
+      { nombre: "Juan el Bautista", vivencia: "Bautizó a Jesús en el Jordán" },
+      { nombre: "Timoteo", vivencia: "Discípulo de Pablo" },
+      { nombre: "Cornelio", vivencia: "Primer gentil convertido" },
+      { nombre: "Lidia", vivencia: "Vendedora de púrpura" },
+      { nombre: "Tomás", vivencia: "Dudó de la resurrección" }
+    ],
+    [
+      { nombre: "Ester", vivencia: "Reina que salvó a los judíos" },
+      { nombre: "Isaías", vivencia: "Profetizó el nacimiento del Mesías" },
+      { nombre: "Jeremías", vivencia: "Conocido como el profeta llorón" },
+      { nombre: "Ezequiel", vivencia: "Profetizó en el exilio" },
+      { nombre: "Esdras", vivencia: "Restauró la ley en Jerusalén" },
+      { nombre: "Nehemías", vivencia: "Reconstruyó los muros de Jerusalén" },
+      { nombre: "Job", vivencia: "Mantuvo su fe en medio del sufrimiento" },
+      { nombre: "Caleb", vivencia: "Exploró la tierra prometida" }
+    ],
+    [
+      { nombre: "Mateo", vivencia: "Recaudador de impuestos" },
+      { nombre: "Marcos", vivencia: "Escribió el segundo evangelio" },
+      { nombre: "Lucas", vivencia: "Médico e historiador" },
+      { nombre: "Juan", vivencia: "Discípulo amado" },
+      { nombre: "Felipe", vivencia: "Predicó al etíope" },
+      { nombre: "Bernabé", vivencia: "Compañero de Pablo" },
+      { nombre: "Silas", vivencia: "Cantó en la prisión" },
+      { nombre: "Esteban", vivencia: "Primer mártir cristiano" }
+    ],
+    [
+      { nombre: "Debora", vivencia: "Jueza y profetisa" },
+      { nombre: "Raquel", vivencia: "Esposa de Jacob" },
+      { nombre: "Lea", vivencia: "Madre de seis tribus" },
+      { nombre: "Rebeca", vivencia: "Esposa de Isaac" },
+      { nombre: "Sara", vivencia: "Madre de Isaac" },
+      { nombre: "Agar", vivencia: "Madre de Ismael" },
+      { nombre: "Rahab", vivencia: "Ayudó a los espías en Jericó" },
+      { nombre: "Priscila", vivencia: "Enseñó a Apolos" }
+    ],
+    [
+      { nombre: "Zaqueo", vivencia: "Subió a un árbol para ver a Jesús" },
+      { nombre: "Nicodemo", vivencia: "Visitó a Jesús de noche" },
+      { nombre: "Simón el Zelote", vivencia: "Apóstol con ideales políticos" },
+      { nombre: "Judas Iscariote", vivencia: "Traicionó a Jesús" },
+      { nombre: "Matías", vivencia: "Reemplazó a Judas" },
+      { nombre: "Apolos", vivencia: "Elocuente predicador" },
+      { nombre: "Dionisio", vivencia: "Miembro del Areópago" },
+      { nombre: "Onésimo", vivencia: "Esclavo fugitivo" }
+    ]
+  ];
+
+  const frasesNiveles = [
+    [
+      "¡Muy bien! Sigue así.",
+      "Excelente memoria bíblica.",
+      "Dios te bendice por aprender Su palabra.",
+      "¡Eres un campeón de la fe!"
+    ],
+    [
+      "Vas muy bien, continúa.",
+      "Tu conocimiento bíblico crece.",
+      "Cada pareja te acerca a Dios.",
+      "¡Increíble! Sabes tu Biblia."
+    ],
+    [
+      "Eres un experto en historias bíblicas.",
+      "Dios se alegra por tu aprendizaje.",
+      "Tu fe es fuerte como una roca.",
+      "¡Wow! Eres un héroe bíblico."
+    ],
+    [
+      "Tu sabiduría bíblica aumenta.",
+      "Cada nivel te hace más sabio.",
+      "Dios guía tu aprendizaje.",
+      "¡Impresionante conocimiento!"
+    ],
+    [
+      "Eres un estudioso de las Escrituras.",
+      "Tu perseverancia es admirable.",
+      "La Palabra de Dios es tu fuerza.",
+      "¡Excelente trabajo!"
+    ],
+    [
+      "Tu fe crece con cada acierto.",
+      "Dios sonríe con tu dedicación.",
+      "Eres un discípulo aplicado.",
+      "¡Continúa así!"
+    ],
+    [
+      "Mujeres valientes de la Biblia.",
+      "Tu conocimiento es inspirador.",
+      "Dios usa a quienes se preparan.",
+      "¡Bendiciones!"
+    ],
+    [
+      "Personajes fascinantes de la Biblia.",
+      "Casi terminas todos los niveles.",
+      "Tu dedicación es ejemplar.",
+      "¡Eres un experto bíblico!"
+    ]
+  ];
+
+  let nivelActual = 0;
+  let parejas = [];
+  let frases = [];
+  let tarjetas = [];
+  let primera = null;
+  let segunda = null;
+  let bloqueado = false;
+  let completadas = 0;
+  let movimientos = 0;
+  let puntuacion = 0;
+  let sonidoActivado = true;
+
+  // Elementos DOM
+  const tablero = document.getElementById("tablero");
+  const mensaje = document.getElementById("mensaje");
+  const movCont = document.getElementById("movimientos");
+  const puntuacionCont = document.getElementById("puntuacion");
+  const btnReiniciar = document.getElementById("reiniciar");
+  const btnSiguiente = document.getElementById("siguiente");
+  const btnSonido = document.getElementById("sonido-btn");
+  const progreso = document.getElementById("progreso");
+  const nivelNum = document.getElementById("nivel-num");
+  const celebracion = document.getElementById("celebracion");
+  const nivelCompletado = document.getElementById("nivel-completado");
+  const finalMovimientos = document.getElementById("final-movimientos");
+  const finalPuntuacion = document.getElementById("final-puntuacion");
+  const btnJugarOtraVez = document.getElementById("jugar-otra-vez");
+
+  // Generador de sonidos con el Web Audio API
+  function crearSonido(frecuencia, duracion, tipo, volumen = 0.3) {
+    try {
+      // Crear contexto de audio
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Crear oscilador
+      const oscilador = audioCtx.createOscillator();
+      oscilador.type = tipo;
+      oscilador.frequency.value = frecuencia;
+      
+      // Crear control de volumen
+      const ganancia = audioCtx.createGain();
+      ganancia.gain.value = volumen;
+      
+      // Conectar los nodos
+      oscilador.connect(ganancia);
+      ganancia.connect(audioCtx.destination);
+      
+      // Programar el sonido
+      const now = audioCtx.currentTime;
+      oscilador.start(now);
+      oscilador.stop(now + duracion);
+      
+      // Reducir volumen gradualmente
+      ganancia.gain.exponentialRampToValueAtTime(0.001, now + duracion);
+      
+    } catch (e) {
+      console.log("Error creando sonido:", e);
+    }
+  }
+
+  // Funciones de sonido específicas
+  function playVoltear() {
+    crearSonido(523.25, 0.2, 'sine'); // Do
+  }
+
+  function playAcierto() {
+    crearSonido(659.25, 0.3, 'sine'); // Mi
+    setTimeout(() => crearSonido(783.99, 0.4, 'sine'), 150); // Sol
+  }
+
+  function playError() {
+    crearSonido(392, 0.4, 'sawtooth'); // Sol bajo
+    setTimeout(() => crearSonido(349.23, 0.5, 'sawtooth'), 200); // Fa
+  }
+
+  function playVictoria() {
+    crearSonido(523.25, 0.2, 'sine'); // Do
+    setTimeout(() => crearSonido(659.25, 0.2, 'sine'), 150); // Mi
+    setTimeout(() => crearSonido(783.99, 0.2, 'sine'), 300); // Sol
+    setTimeout(() => crearSonido(1046.5, 0.5, 'sine'), 450); // Do alto
+  }
+
+  function playClick() {
+    crearSonido(600, 0.1, 'sine', 0.2);
+  }
+
+  function reproducirSonido(tipo) {
+    if (!sonidoActivado) return;
+    
+    switch(tipo) {
+      case 'voltear':
+        playVoltear();
+        break;
+      case 'acierto':
+        playAcierto();
+        break;
+      case 'error':
+        playError();
+        break;
+      case 'victoria':
+        playVictoria();
+        break;
+      case 'click':
+        playClick();
+        break;
+    }
+  }
+
+  function toggleSonido() {
+    sonidoActivado = !sonidoActivado;
+    const icono = btnSonido.querySelector('i');
+    if (sonidoActivado) {
+      icono.className = 'fas fa-volume-up';
+      // Reproducir sonido de prueba
+      setTimeout(() => reproducirSonido('click'), 100);
+    } else {
+      icono.className = 'fas fa-volume-mute';
+    }
+  }
+
+  function crearConfetti() {
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      confetti.style.animation = `fall ${Math.random() * 2 + 1}s linear forwards`;
+      celebracion.appendChild(confetti);
+      
+      // Eliminar después de la animación
+      setTimeout(() => {
+        confetti.remove();
+      }, 3000);
+    }
+  }
+
+  function mezcla(array) {
+    for(let i = array.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function cargarNivel(lvl) {
+    nivelActual = lvl;
+    parejas = niveles[lvl].slice();
+    frases = frasesNiveles[lvl].slice();
+    movimientos = 0;
+    puntuacion = 0;
+    completadas = 0;
+    movCont.textContent = "0";
+    puntuacionCont.textContent = "0";
+    nivelNum.textContent = lvl + 1;
+    progreso.style.width = "0%";
+    primera = null;
+    segunda = null;
+    bloqueado = false;
+    btnSiguiente.classList.add('oculto');
+    nivelCompletado.classList.add('oculto');
+    preparaTablero();
+    mensaje.textContent = "¡Encuentra las parejas bíblicas! Toca las tarjetas para revelarlas.";
+  }
+
+  function preparaTablero() {
+    tarjetas = [];
+    parejas.forEach((p, idx) => {
+      tarjetas.push({ id: idx, texto: p.nombre, tipo: "nombre" });
+      tarjetas.push({ id: idx, texto: p.vivencia, tipo: "vivencia" });
+    });
+    mezcla(tarjetas);
+    tablero.innerHTML = "";
+
+    const numCartas = tarjetas.length;
+    let cols = Math.min(4, Math.ceil(Math.sqrt(numCartas)));
+    if (window.innerWidth > 600) cols = Math.min(5, cols);
+    if (window.innerWidth > 900) cols = Math.min(6, cols);
+
+    tablero.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    tarjetas.forEach((tarjeta, i) => {
+      const carta = document.createElement("div");
+      carta.className = "tarjeta";
+      carta.tabIndex = 0;
+      carta.dataset.index = i;
+
+      const inner = document.createElement("div");
+      inner.className = "tarjeta-inner";
+
+      const front = document.createElement("div");
+      front.className = "tarjeta-front";
+      front.innerHTML = "<i class='fas fa-question'></i>";
+
+      const back = document.createElement("div");
+      back.className = `tarjeta-back ${tarjeta.tipo}`;
+      back.textContent = tarjetas[i].texto;
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      carta.appendChild(inner);
+
+      carta.addEventListener("click", () => revela(i));
+      carta.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          revela(i);
+        }
+      });
+
+      tablero.appendChild(carta);
+    });
+  }
+
+  function revela(idx) {
+    if (bloqueado) return;
+    const cartas = document.querySelectorAll(".tarjeta");
+    const carta = cartas[idx];
+    if (carta.classList.contains("revelada") || carta.classList.contains("completada")) return;
+
+    reproducirSonido('voltear');
+    carta.classList.add("revelada");
+
+    if (!primera) {
+      primera = { idx, ...tarjetas[idx] };
+    } else if (!segunda && idx !== primera.idx) {
+      segunda = { idx, ...tarjetas[idx] };
+      bloqueado = true;
+      movimientos++;
+      movCont.textContent = movimientos;
+      setTimeout(verificaPareja, 900);
+    }
+  }
+
+  function verificaPareja() {
+    const cartas = document.querySelectorAll(".tarjeta");
+    if (primera.id === segunda.id && primera.tipo !== segunda.tipo) {
+      cartas[primera.idx].classList.add("completada");
+      cartas[segunda.idx].classList.add("completada");
+      
+      // Animación de acierto
+      cartas[primera.idx].classList.add('animate-tada');
+      cartas[segunda.idx].classList.add('animate-tada');
+      setTimeout(() => {
+        cartas[primera.idx].classList.remove('animate-tada');
+        cartas[segunda.idx].classList.remove('animate-tada');
+      }, 1000);
+      
+      completadas++;
+      reproducirSonido('acierto');
+      
+      // Actualizar progreso
+      const progresoPorcentaje = (completadas / parejas.length) * 100;
+      progreso.style.width = `${progresoPorcentaje}%`;
+      
+      // Calcular puntuación (a menos movimientos, más puntos)
+      const puntosGanados = 100 - (movimientos / (parejas.length * 2)) * 10;
+      puntuacion += Math.max(10, Math.floor(puntosGanados));
+      puntuacionCont.textContent = puntuacion;
+      puntuacionCont.classList.add('animate-pulse');
+      setTimeout(() => puntuacionCont.classList.remove('animate-pulse'), 500);
+      
+      mensaje.textContent = frases[Math.floor(Math.random() * frases.length)];
+      
+      if (completadas === parejas.length) {
+        setTimeout(() => {
+          reproducirSonido('victoria');
+          crearConfetti();
+          
+          if (nivelActual < niveles.length - 1) {
+            setTimeout(() => {
+              finalMovimientos.textContent = movimientos;
+              finalPuntuacion.textContent = puntuacion;
+              nivelCompletado.classList.remove('oculto');
+            }, 1500);
+          } else {
+            setTimeout(() => {
+              finalMovimientos.textContent = movimientos;
+              finalPuntuacion.textContent = puntuacion;
+              nivelCompletado.classList.remove('oculto');
+              nivelCompletado.querySelector('h2').textContent = "¡Juego Completado!";
+              nivelCompletado.querySelector('p:nth-of-type(2)').textContent = "Has completado todos los niveles";
+              btnJugarOtraVez.innerHTML = '<i class="fas fa-trophy"></i> Jugar de Nuevo';
+            }, 1500);
+          }
+        }, 1000);
+      }
+    } else {
+      cartas[primera.idx].classList.remove("revelada");
+      cartas[segunda.idx].classList.remove("revelada");
+      reproducirSonido('error');
+      mensaje.textContent = "Sigue intentando. ¡Tú puedes!";
+    }
+    primera = null;
+    segunda = null;
+    bloqueado = false;
+  }
+
+  // Event listeners
+  btnReiniciar.addEventListener("click", () => {
+    reproducirSonido('click');
+    cargarNivel(nivelActual);
+  });
+
+  btnSiguiente.addEventListener("click", () => {
+    reproducirSonido('click');
+    if (nivelActual < niveles.length - 1) {
+      cargarNivel(nivelActual + 1);
+    }
+  });
+
+  btnJugarOtraVez.addEventListener("click", () => {
+    reproducirSonido('click');
+    if (nivelActual < niveles.length - 1) {
+      cargarNivel(nivelActual + 1);
+    } else {
+      cargarNivel(0);
+    }
+  });
+
+  btnSonido.addEventListener("click", () => {
+    // No reproducir sonido al togglear el sonido para evitar confusión
+    toggleSonido();
+  });
+
+  // Iniciar juego
+  cargarNivel(0);
+
+  // Asegurar que el juego sea responsivo
+  window.addEventListener('resize', () => {
+    if (tablero.children.length > 0) {
+      const numCartas = tarjetas.length;
+      let cols = Math.min(4, Math.ceil(Math.sqrt(numCartas)));
+      if (window.innerWidth > 600) cols = Math.min(5, cols);
+      if (window.innerWidth > 900) cols = Math.min(6, cols);
+      tablero.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    }
+  });
+</script>
+</body>
+</html>
