@@ -22,11 +22,15 @@
       --color-progress: #4CAF50;
       --color-btn-next: #2196F3;
       --shadow: 0 4px 8px rgba(0,0,0,0.1);
+      --fuente-ninos: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
     }
+
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
 
     body {
       background: linear-gradient(135deg, var(--color-background) 0%, #c8e6c9 100%);
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: var(--fuente-ninos);
       text-align: center;
       margin: 0;
       padding: 16px 8px;
@@ -54,6 +58,8 @@
       font-size: clamp(1.8rem, 5vw, 3rem);
       text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
       animation: bounce 2s infinite;
+      font-family: 'Fredoka One', var(--fuente-ninos);
+      letter-spacing: 1px;
     }
 
     .nivel-info {
@@ -65,6 +71,7 @@
       padding: 8px 16px;
       border-radius: 20px;
       display: inline-block;
+      font-family: 'Gochi Hand', var(--fuente-ninos);
     }
 
     #progreso-container {
@@ -105,10 +112,16 @@
       flex: 1;
     }
 
+    .stat-box div:first-child {
+      font-family: 'Gochi Hand', var(--fuente-ninos);
+      font-size: clamp(14px, 2.5vw, 18px);
+    }
+
     #movimientos, #puntuacion {
       font-weight: bold;
       font-size: clamp(16px, 3vw, 20px);
       color: var(--color-text);
+      font-family: 'Fredoka One', var(--fuente-ninos);
     }
 
     #tablero {
@@ -173,6 +186,7 @@
       background: linear-gradient(135deg, var(--color-primary), #81C784);
       color: white;
       font-size: clamp(24px, 6vw, 36px);
+      font-family: 'Fredoka One', var(--fuente-ninos);
     }
 
     .tarjeta-front i {
@@ -186,11 +200,13 @@
       transform: rotateY(180deg);
       font-size: clamp(10px, 2.5vw, 16px);
       overflow: hidden;
+      font-family: 'Gochi Hand', var(--fuente-ninos);
     }
 
     .tarjeta-back.nombre {
       background: linear-gradient(135deg, #42A5F5, #64B5F6);
       color: white;
+      font-family: 'Fredoka One', var(--fuente-ninos);
     }
 
     .tarjeta-back.vivencia {
@@ -212,6 +228,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-family: 'Gochi Hand', var(--fuente-ninos);
     }
 
     .botones {
@@ -237,6 +254,8 @@
       gap: 8px;
       min-width: 140px;
       justify-content: center;
+      font-family: 'Fredoka One', var(--fuente-ninos);
+      letter-spacing: 0.5px;
     }
 
     button:hover {
@@ -274,6 +293,7 @@
       box-shadow: var(--shadow);
       cursor: pointer;
       z-index: 10;
+      font-family: var(--fuente-ninos);
     }
 
     .celebracion {
@@ -349,6 +369,7 @@
       color: white;
       padding: 20px;
       text-align: center;
+      font-family: var(--fuente-ninos);
     }
 
     .nivel-completado h2 {
@@ -356,11 +377,13 @@
       margin-bottom: 20px;
       color: var(--color-secondary);
       text-shadow: 0 0 10px rgba(0,0,0,0.5);
+      font-family: 'Fredoka One', var(--fuente-ninos);
     }
 
     .nivel-completado p {
       font-size: clamp(1rem, 3vw, 1.5rem);
       margin-bottom: 20px;
+      font-family: 'Gochi Hand', var(--fuente-ninos);
     }
 
     .oculto {
@@ -505,7 +528,7 @@
       { nombre: "Debora", vivencia: "Jueza y profetisa" },
       { nombre: "Raquel", vivencia: "Esposa de Jacob" },
       { nombre: "Lea", vivencia: "Madre de seis tribus" },
-      { nombre: "Rebeca", vivencia: "Esposa de Isaac" },
+      { nombre: "Rebeca", vivencia: "Esposa of Isaac" },
       { nombre: "Sara", vivencia: "Madre de Isaac" },
       { nombre: "Agar", vivencia: "Madre de Ismael" },
       { nombre: "Rahab", vivencia: "Ayudó a los espías en Jericó" },
